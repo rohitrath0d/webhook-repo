@@ -3,7 +3,7 @@ import EventItem from './EventItem';
 
 const EventList = ({ events }) => {
   return (
-    <ul>
+    <ul className="space-y-4">
       {events.map((event) => (
         <EventItem key={event.request_id} event={event} />
       ))}

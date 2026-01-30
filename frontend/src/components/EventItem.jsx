@@ -14,7 +14,11 @@ const EventItem = ({ event }) => {
     }
   };
 
-  return <li>{formatEvent()}</li>;
+  return (
+    <li className="p-4 bg-white shadow-md rounded-md border border-gray-200">
+      {formatEvent()}
+    </li>
+  );
 };
 
 export default EventItem;
