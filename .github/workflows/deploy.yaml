@@ -20,6 +20,6 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/home/rohit_rthd_04/webhook-repo
+            cd /home/rohit_rthd_04/webhook-repo
             git pull
             docker-compose up -d --build
