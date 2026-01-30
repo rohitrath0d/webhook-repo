@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app.db_connections.mongo_connect import mongo
-from app.models import GitHubEvent
+from app.models.models import GitHubEvent
 import logging
 
 logger = logging.getLogger(__name__)

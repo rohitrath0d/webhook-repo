@@ -1,5 +1,4 @@
 from flask import Flask
-
 from app.webhooks.webhook import webhook
 from app.db_connections.mongo_connect import mongo
 
