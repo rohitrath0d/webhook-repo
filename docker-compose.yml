@@ -1,17 +1,24 @@
 services:
   backend:
     build:
-      context: ./backend
+      context: ./backend 
+    container_name: webhook-backend
+    env_file:
+      - .env
     ports:
       - "4001:5000"
     volumes:
       - ./backend:/app
-    environment:
-      - FLASK_ENV=development
+    
 
   frontend:
     build:
       context: ./frontend
+    args:
+      VITE_API_URL: ${VITE_API_URL}
+    container_name: webhook-frontend
+    env_file:
+      - .env
     ports:
       - "3001:3000"
     volumes:
