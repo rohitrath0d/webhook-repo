@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from app.webhooks.webhook import webhook
 from app.db_connections.mongo_connect import mongo
 
@@ -12,4 +12,6 @@ def create_app():
 
 @app.route("/", methods=["GET"])
 def health():
-    return {"status": "Webhook server running"}, 200
+    return jsonify({
+      "status": "Webhook server running"
+      }), 200
