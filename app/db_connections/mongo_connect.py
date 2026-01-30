@@ -46,6 +46,32 @@ class MongoDB:
 
             self.db = self.client[db_name]
             self.events_collection = self.db["webhook-events-data"]
+            
+            
+            # Create collection with schema validation if it doesn't exist
+            validator = {
+                "$jsonSchema": {
+                "bsonType": "object",
+                "required": ["request_id", "author", "action", "to_branch", "timestamp"],
+                "properties": {
+                    "request_id": {"bsonType": "string"},
+                    "author": {"bsonType": "string"},
+                    "action": {"enum": ["PUSH", "PULL_REQUEST", "MERGE"]},
+                    "from_branch": {"bsonType": ["string", "null"]},
+                    "to_branch": {"bsonType": "string"},
+                    "timestamp": {"bsonType": "string"}
+                    }
+                }
+            }
+
+            if "webhook-events-data" not in self.db.list_collection_names():
+                self.db.create_collection("webhook-events-data", validator=validator)
+            else:
+                self.db.command({
+                    "collMod": "webhook-events-data",
+                    "validator": validator,
+                    "validationLevel": "strict"
+                })
 
             logger.info(f"MongoDB connected successfully: {db_name}")
 
