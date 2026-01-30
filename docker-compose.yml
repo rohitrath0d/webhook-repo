@@ -1,7 +1,10 @@
 services:
   backend:
     build:
-      context: ./backend 
+      context: ./backend
+      args:
+        DATABASE_URL: ${DATABASE_URL}
+        DATABASE_NAME: ${DATABASE_NAME}
     container_name: webhook-backend
     env_file:
       - .env
@@ -9,7 +12,6 @@ services:
       - "4001:5000"
     volumes:
       - ./backend:/app
-    
 
   frontend:
     build:

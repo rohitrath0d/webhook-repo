@@ -23,4 +23,7 @@ jobs:
           script: |
             cd ~/webhook-repo
             git pull
+            export DATABASE_URL="${{ secrets.DATABASE_URL }}"
+            export DATABASE_NAME="${{ secrets.DATABASE_NAME }}"
+            export VITE_API_URL="${{ secrets.VITE_API_URL }}"
             docker-compose up -d --build
