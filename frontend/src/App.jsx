@@ -11,9 +11,12 @@ const App = () => {
     const fetchEvents = async () => {
       try {
         const response = await api.get('/events');
-        setEvents(response.data);
+        console.log('<------------ API Response: ----------->', response.data);
+        // setEvents(response.data);
+        setEvents(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error('Error fetching events:', error);
+        setEvents([]);
       }
     };
 
@@ -22,9 +25,13 @@ const App = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredEvents = events.filter(
-    (event) => filter === 'ALL' || event.action === filter
-  );
+  // const filteredEvents = events.filter(
+  //   (event) => filter === 'ALL' || event.action === filter
+  // );
+
+  const filteredEvents = Array.isArray(events)
+    ? events.filter((event) => filter === 'ALL' || event.action === filter)
+    : [];
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800">
