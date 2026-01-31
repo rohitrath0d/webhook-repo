@@ -10,7 +10,8 @@ const App = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await api.get('/events');
+        const response = await api.get('/webhook/events');
+        console.log('<--------------------- Raw API Response: -------------->', response);
         console.log('<------------ API Response: ----------->', response.data);
         // setEvents(response.data);
         setEvents(Array.isArray(response.data) ? response.data : []);
