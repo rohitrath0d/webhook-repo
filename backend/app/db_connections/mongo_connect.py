@@ -128,7 +128,8 @@ class MongoDB:
     
     def insert_event(self, event_doc):
         """Insert an event document into the collection."""
-        if not self.events_collection:
+        # if not self.events_collection:
+        if  self.events_collection is None:
             raise RuntimeError("Events collection not initialized")
         self.events_collection.insert_one(event_doc)
 
