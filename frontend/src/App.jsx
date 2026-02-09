@@ -11,6 +11,9 @@ const App = () => {
     const fetchEvents = async () => {
       try {
         const response = await api.get('/webhook/events');
+        console.log("event data response ---------->", response.data);
+        // console.log("event data response ---------->", response.data.events);
+        
         setEvents(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error('Error fetching events:', error);

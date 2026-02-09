@@ -60,7 +60,7 @@ const Events = ({ events }) => {
   return (
     <div className="flex flex-col gap-2.5">
       {events.map((event) => (
-        <EventCard key={event.request_id} event={event} />
+        <EventCard key={event._id} event={event} />
       ))}
     </div>
   );

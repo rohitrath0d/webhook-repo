@@ -80,34 +80,17 @@ class MongoDB:
             
             logger.info(f"MongoDB connected successfully: {db_name}")
 
-            # # Log collections
-            # collections = self.db.list_collection_names()
-            # logger.info(f"Collections: {collections if collections else 'No collections yet'}")
-            
-            # # Test insert
-            # test_collection = self.db['test_connection']
-            # result = test_collection.insert_one({"test": "data", "timestamp": "2024-01-01"})
-            # logger.info(f"✅ Test insert successful! ID: {result.inserted_id}")
-        
-            # # Clean up test
-            # test_collection.delete_one({"_id": result.inserted_id})
-            # logger.info(f"🧹 Test data cleaned up")
-        
-            # # client.close()
-            # print(f"✅ All connection tests passed!")
-            # # return True
-
             # Create indexes
             self._create_indexes()
 
             return self.db
 
         except errors.ServerSelectionTimeoutError:
-            logger.error("❌ Could not connect to MongoDB server. Check URL or network.")
+            logger.error(" [ERROR]: <------------ Could not connect to MongoDB server. Check URL or network.")
             raise
 
         except Exception as e:
-            logger.error(f"❌ MongoDB connection failed: {e}")
+            logger.error(f"[ERROR]: <------------ MongoDB connection failed: {e}")
             raise
     
     def _create_indexes(self):
@@ -121,7 +104,7 @@ class MongoDB:
             self.events_collection.create_index(
                 [("action", ASCENDING)]
             )
-            logger.info("✅ MongoDB indexes created successfully")
+            logger.info("[SUCCESS]: <----------- MongoDB indexes created successfully")
 
         except Exception as e:
             logger.warning(f"Index creation failed or skipped: {e}")
