@@ -32,12 +32,11 @@ const App = () => {
   );
 
   return (
-    <div className="min-h-screen pb-12 bg-[#12121a] text-gray-100">
-      <header className="bg-[#1a1a24] border-b border-white/10 py-6 px-8 text-center">
-        <h1 className="text-2xl font-bold text-violet-400">GitHub Activity</h1>
-        <p className="mt-2 text-gray-400 text-sm">Real-time event stream</p>
+    <div className="min-h-screen pb-12 bg-gray-300 text-gray-100">
+      <header className="bg-gray-300 py-4 px-8 text-center">
+        <h1 className="text-2xl font-bold text-black">GitHub Repo Actions</h1>
       </header>
-      <main className="max-w-[500px] mx-auto py-8 px-4">
+      <main className="max-w-[600px] mx-auto py-4 px-4">
         <Filters filter={filter} setFilter={setFilter} />
         <Events events={filteredEvents} />
       </main>
