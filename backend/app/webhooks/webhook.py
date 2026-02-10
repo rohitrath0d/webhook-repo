@@ -36,6 +36,8 @@ def github_actions_webhook_receiver():
     if not verify_github_signature(request):
         logger.warning("Invalid GitHub webhook signature")
         return jsonify({"error": "Invalid signature"}), 401
+    else:
+        logging.info("[SUCCESS]: <------ verifying request check pass")
     
     event_type = request.headers.get("X-Github-Event")
     payload = request.json

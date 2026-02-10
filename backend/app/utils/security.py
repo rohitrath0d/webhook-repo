@@ -2,8 +2,10 @@ import hmac
 import hashlib
 import os
 from flask import request
+import logging
 
 WEBHOOK_SECRET=os.getenv("WEBHOOK_SECRET")
+logger = logging.getLogger(__name__)
 
 def verify_github_signature(req: request) -> bool:
   header_signature = req.headers.get("X-Hub-Signature-256")
@@ -17,5 +19,5 @@ def verify_github_signature(req: request) -> bool:
     msg=payload,
     digestmod=hashlib.sha256
   ).hexdigest()
-  
-  return hmac.compare_digest(f"sha256={computed_hmac}, header_signature")
+    
+  return hmac.compare_digest(f"sha256={computed_hmac}", header_signature)
