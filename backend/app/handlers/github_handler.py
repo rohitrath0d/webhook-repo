@@ -9,7 +9,6 @@ def github_event_handler(event_type, payload):
   Args:
       event_type (string): event types "push" | "pull"  | "merge" from github webhook
       payload (json): payload data from github webhook response body
-
   """
   if event_type == "push" and payload.get("head_commit"):
     return GitHubEvent(

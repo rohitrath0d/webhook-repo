@@ -13,7 +13,7 @@ const App = () => {
         const response = await api.get('/webhook/events');
         console.log("event data response ---------->", response.data);
         // console.log("event data response ---------->", response.data.events);
-        
+
         setEvents(Array.isArray(response.data) ? response.data : []);
 
       } catch (error) {
@@ -22,9 +22,14 @@ const App = () => {
       }
     };
 
+    console.log("[POLLING STARTED]: <------------- initializing polling");
+
     fetchEvents();
+
     const interval = setInterval(fetchEvents, 15000);     // fetching / polling every 15 seconds
+    console.log("[POLLING ENDED]: <---------------- ending polling");
     return () => clearInterval(interval);
+
   }, []);
 
   const filteredEvents = events.filter(
