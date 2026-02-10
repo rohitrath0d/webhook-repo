@@ -15,6 +15,7 @@ const App = () => {
         // console.log("event data response ---------->", response.data.events);
         
         setEvents(Array.isArray(response.data) ? response.data : []);
+
       } catch (error) {
         console.error('Error fetching events:', error);
         setEvents([]);
@@ -22,7 +23,7 @@ const App = () => {
     };
 
     fetchEvents();
-    const interval = setInterval(fetchEvents, 15000);
+    const interval = setInterval(fetchEvents, 15000);     // fetching / polling every 15 seconds
     return () => clearInterval(interval);
   }, []);
 

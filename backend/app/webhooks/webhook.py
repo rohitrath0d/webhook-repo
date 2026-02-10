@@ -4,7 +4,8 @@ from app.db_connections.mongo_connect import mongo
 import logging
 from app.handlers.github_handler import github_event_handler
 from threading import Thread
-
+from app.tasks.events import store_event_task
+from app.utils.security import verify_github_signature
 
 logger = logging.getLogger(__name__)
 
@@ -22,14 +23,19 @@ def background_event_processing(event_type, payload):
             logger.info("Event ignored")
             return
 
-        mongo.insert_event(event.dict())
-        logger.info(f"Stored event: {event.action} by {event.author}")
+        # mongo.insert_event(event.dict()) --- shifted task of inserting db to tasks/events.py
+        store_event_task.delay(event.dict())
+        logger.info(f"Event enqueued: {event.action} by {event.author}")
 
     except Exception as e:
         logger.error(f"Background processing failed: {e}")
 
 @webhook.route('/receiver', methods=["POST"])
 def github_actions_webhook_receiver():
+    
+    if not verify_github_signature(request):
+        logger.warning("Invalid GitHub webhook signature")
+        return jsonify({"error": "Invalid signature"}), 401
     
     event_type = request.headers.get("X-Github-Event")
     payload = request.json
@@ -57,18 +63,17 @@ def github_actions_webhook_receiver():
         "status": "accepted"
     }), 200
    
+
 @webhook.route('/events', methods=['GET'])
 def get_events():
     try:
         events = list(mongo.events_collection.find()
                       .sort("timestamp", -1)
                       .limit(50)
-                )
+                    )
         for event in events:
             event["_id"] = str(event["_id"])  # Convert ObjectId to string
-        # return jsonify({
-        #     "events": events
-        #     }), 200
+            
         return jsonify(events), 200
     except Exception as e:
         logger.error(f"Error fetching events: {e}")

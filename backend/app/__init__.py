@@ -26,5 +26,5 @@ def create_app():
 @app.route("/", methods=["GET"])
 def health():
     return jsonify({
-      "status": "Webhook server running"
+      "status": "All up and running!"
       }), 200
