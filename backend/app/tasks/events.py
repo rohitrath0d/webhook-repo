@@ -10,5 +10,7 @@ def store_event_task(self, event_dict):
   Store validated GitHub event into MongoDB.
   Retries automatically on failure.
   """
+  if mongo.events_collection is not None:
+    mongo.database_connection()
   mongo.insert_event(event_dict)
-  logger.info(f"Event stored via celery -----------> {event_dict.get('action')} ")
+  logger.info(f"Event stored via celery in Result DB-----------> {event_dict.get('action')} ")

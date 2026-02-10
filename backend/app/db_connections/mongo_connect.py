@@ -20,7 +20,7 @@ class MongoDB:
 
     def database_connection(self):
         """
-        Initialize MongoDB connection
+        Initialize MongoDB connection and collection
         """
         logger.info("Initializing MongoDB connection...")
 
@@ -43,8 +43,7 @@ class MongoDB:
             self.client.admin.command("ping")
 
             self.db = self.client[db_name]
-            # self.events_collection = self.db["webhook-events-data"]
-            
+            # self.events_collection = self.db["webhook-events-data"]  
             
             # Create collection with schema validation if it doesn't exist
             validator = {
@@ -64,8 +63,8 @@ class MongoDB:
 
             if "webhook-events-data" not in self.db.list_collection_names():
                 self.events_collection =  self.db.create_collection(
-                     "webhook-events-data", 
-                     validator=validator
+                    "webhook-events-data", 
+                    validator=validator
                 )
                 logger.info("Collection created with schema validation")
             else:
@@ -97,6 +96,10 @@ class MongoDB:
         """
         Create indexes optimized for webhook event queries
         """
+        if not self.events_collection:
+            logger.warning("[INDEX]: Events collection not initialized, skipping indexes")
+            return
+        
         try:
             self.events_collection.create_index(
                 [("timestamp", DESCENDING)]
@@ -133,7 +136,6 @@ class MongoDB:
         if self.client:
             self.client.close()
             logger.info("MongoDB connection closed")
-
 
 # Global reusable instance
 mongo = MongoDB()    
