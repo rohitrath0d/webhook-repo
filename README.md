@@ -1,15 +1,9 @@
-# 🚀 GitHub Activity Event Logger
+# GitHub Activity Event Logger
 
 A real-time GitHub webhook event logging application that captures and displays **PUSH**, **PULL REQUEST**, and **MERGE** events from connected repositories.
 
-![Tech Stack](https://img.shields.io/badge/Backend-Flask-blue?style=flat-square&logo=flask)
-![Tech Stack](https://img.shields.io/badge/Frontend-React-61DAFB?style=flat-square&logo=react)
-![Tech Stack](https://img.shields.io/badge/Database-MongoDB-47A248?style=flat-square&logo=mongodb)
-![Tech Stack](https://img.shields.io/badge/Styling-TailwindCSS-06B6D4?style=flat-square&logo=tailwindcss)
 
----
-
-## 📖 Overview
+## Overview
 
 This application listens for GitHub webhook events and stores them in MongoDB, providing a real-time dashboard to visualize all activity happening in your repositories. Events are automatically refreshed every 15 seconds.
 
@@ -23,71 +17,66 @@ This application listens for GitHub webhook events and stores them in MongoDB, p
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
-┌─────────────────┐      Webhook Events      ┌─────────────────┐
-│                 │  ──────────────────────▶ │                 │
-│  GitHub Repo    │                          │   Flask Backend │
-│  (actions-repo) │                          │   (Port 5000)   │
-│                 │                          │                 │
-└─────────────────┘                          └────────┬────────┘
-                                                      │
-                                                      ▼
-                                             ┌─────────────────┐
-                                             │                 │
-                                             │    MongoDB      │
-                                             │   (Atlas/Local) │
-                                             │                 │
-                                             └────────┬────────┘
-                                                      │
-                                                      ▼
-                                             ┌─────────────────┐
-                                             │                 │
-                                             │  React Frontend │
-                                             │   (Port 5173)   │
-                                             │                 │
-                                             └─────────────────┘
+┌──────────────┐
+│    GitHub    │
+└──────┬───────┘
+       │
+       ▼
+┌───────────────────────┐
+│ Flask route           │
+│ (HTTP only)           │
+└──────┬────────────────┘
+       │
+       ▼
+┌───────────────────────┐
+│ Thread                │
+│ (offload work)        │
+└──────┬────────────────┘
+       │
+       ▼
+┌───────────────────────────────────────┐
+│ github_event_handler                  │
+│ (business logic + Pydantic)           │
+└──────┬────────────────────────────────┘
+       │
+       ▼
+┌────────────────────────┐
+│ Celery task            │
+│ (async, retryable)     │
+└──────┬─────────────────┘
+       │
+       ▼
+┌────────────────────────┐
+│ Redis                  │
+│ (broker)               │
+└──────┬─────────────────┘
+       │
+       ▼
+┌────────────────────────┐
+│ MongoDB                │
+│ (persistence)          │
+└────────────────────────┘
 ```
 
----
+**Event Processing Flow:**
+1. **GitHub** sends webhook events
+2. **Flask route** receives HTTP request (HTTP only, fast response)
+3. **Thread** offloads processing to avoid blocking
+4. **github_event_handler** processes with business logic & Pydantic validation
+5. **Celery task** queues for async processing with retry capabilities
+6. **Redis** acts as message broker between Flask and Celery workers
+7. **MongoDB** persists processed events for dashboard display
 
-## 📁 Project Structure
-
-```
-webhook-repo/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py           # Flask app factory
-│   │   ├── db_connections/       # MongoDB connection
-│   │   ├── models/               # Pydantic models (GitHubEvent)
-│   │   └── webhooks/             # Webhook receiver endpoints
-│   ├── requirements.txt          # Python dependencies
-│   ├── run_server.py             # Server entry point
-│   ├── Dockerfile                # Backend Docker config
-│   └── .env                      # Environment variables
-│
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx               # Main application component
-│   │   ├── components/
-│   │   │   ├── Events.jsx        # Event list component
-│   │   │   └── Filters.jsx       # Event type filter
-│   │   └── services/api.js       # Axios API client
-│   ├── package.json              # Node dependencies
-│   ├── vite.config.js            # Vite configuration
-│   └── Dockerfile                # Frontend Docker config
-│
-├── docker-compose.yml            # Multi-container setup
-└── README.md
-```
-
----
 
 ## 🛠️ Tech Stack
 
 ### Backend
 - **Flask** - Python web framework
+- **Celery** - Distributed task queue for async processing
+- **Redis** - Message broker for Celery queue
 - **Pydantic** - Data validation
 - **PyMongo** - MongoDB driver
 - **Flask-CORS** - Cross-origin resource sharing
@@ -103,14 +92,12 @@ webhook-repo/
 
 ---
 
-## 🚀 Getting Started
-
 ### Prerequisites
 
 - Python 3.10+
 - Node.js 18+
-- MongoDB Atlas account (or local MongoDB)
-- ngrok (for local webhook testing)
+- MongoDB Atlas account for cloud connection string (or local MongoDB)
+- ngrok/local-tunnel (for local webhook testing)
 
 ### 1. Clone the Repository
 
@@ -154,7 +141,32 @@ python run_server.py
 
 The backend will run on `http://localhost:5000`
 
-### 3. Frontend Setup
+### 3. Redis Setup
+
+Ensure Redis is running. You can use Docker:
+
+```bash
+# Run Redis in Docker
+docker run -d -p 6379:6379 redis:latest
+```
+
+Or install locally:
+- **Windows**: Download from [Redis-Windows](https://github.com/microsoftarchive/redis/releases)
+- **Linux/Mac**: `brew install redis` or use your package manager
+
+### 4. Celery Worker Setup
+
+Start the Celery worker in a separate terminal:
+
+```bash
+cd backend
+# Activate virtual environment first (if not already active)
+celery -A app.celery_app worker --loglevel=info --pool=solo (if you need more than one worker - exclude --polo=solo args)
+```
+
+This will start the Celery worker that processes async tasks queued by the Flask backend.
+
+### 5. Frontend Setup
 
 ```bash
 cd frontend
@@ -179,7 +191,46 @@ The frontend will run on `http://localhost:5173`
 
 ---
 
-## 🐳 Docker Setup
+## Running All Services Together
+
+For a complete local setup, start these services in parallel (use separate terminals):
+
+**Terminal 1 - Redis:**
+```bash
+# If using Docker
+docker run -d -p 6379:6379 redis:latest
+
+# Or if installed locally
+redis-server
+```
+
+**Terminal 2 - Flask Backend:**
+```bash
+cd backend
+# Activate virtual environment
+# Windows: venv\Scripts\activate
+# Linux/Mac: source venv/bin/activate
+python run_server.py
+```
+
+**Terminal 3 - Celery Worker:**
+```bash
+cd backend
+# Activate virtual environment (if not already active)
+celery -A app.celery_app worker --loglevel=info
+```
+
+**Terminal 4 - React Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+
+Access the application at `http://localhost:5173`
+
+---
+
+## Docker Setup
 
 Run both services with Docker Compose:
 
@@ -194,7 +245,7 @@ docker-compose up --build
 
 ---
 
-## 🔌 Testing with ngrok
+## Testing with ngrok
 
 Since GitHub webhooks require a publicly accessible URL, use **ngrok** to expose your local server for testing.
 
@@ -214,7 +265,7 @@ cd backend
 python run_server.py
 ```
 
-### Step 3: Start ngrok Tunnel
+### Step 3: Start ngrok Tunnel / Local Tunnel
 
 Open a new terminal and run:
 
@@ -260,7 +311,7 @@ Check the frontend dashboard to see events appear in real-time!
 
 ---
 
-## 🎯 Dummy Actions Repository
+## Dummy Actions Repository
 
 For testing purposes, a separate repository is used to simulate GitHub events:
 
@@ -335,19 +386,19 @@ Response:
   }
 ]
 ```
-
 ---
 
-## 🎨 Frontend Features
+## 🔧 Environment Variables & Configuration
 
-- **Real-time updates** - Events refresh every 15 seconds
-- **Event filtering** - Filter by PUSH, PULL_REQUEST, MERGE, or ALL
-- **Modern UI** - Dark theme with violet accents
-- **Responsive design** - Works on all screen sizes
+### Celery & Redis Configuration
 
----
+The Celery task queue is configured to work with Redis as the message broker. You can customize these settings:
 
-## 🔧 Environment Variables
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REDIS_URL` | Redis connection URL | redis://localhost:6379/0 |
+| `CELERY_BROKER_URL` | Celery broker URL | redis://localhost:6379/0 |
+| `CELERY_RESULT_BACKEND` | Celery result backend | redis://localhost:6379/0 |
 
 ### Backend (.env)
 
@@ -366,29 +417,14 @@ Response:
 
 ---
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-## 👤 Author
+## Author
 
 **Rohit Rathod**  
 GitHub: [@rohitrath0d](https://github.com/rohitrath0d)
 
----
-
-<p align="center">
-  Made with ❤️ for tracking GitHub activity
-</p>
