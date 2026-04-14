@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from app.db_connections.mongo_connect import mongo
 # from app.models.models import GitHubEvent
+from datetime import datetime, timedelta
 import logging
 from app.handlers.github_handler import github_event_handler
 from threading import Thread
@@ -69,10 +70,16 @@ def github_actions_webhook_receiver():
 @webhook.route('/events', methods=['GET'])
 def get_events():
     try:
-        events = list(mongo.events_collection.find()
-                      .sort("timestamp", -1)
-                      .limit(50)
-                    )
+        fifteen_seconds_ago = datetime.utcnow() - timedelta(seconds=15)
+        
+        events = list(
+            mongo.events_collection.find(
+            {"timestamp": {"$gte": fifteen_seconds_ago}}
+            )
+            .sort("timestamp", -1)
+            .limit(50)
+        )
+        
         for event in events:
             event["_id"] = str(event["_id"])  # Convert ObjectId to string
             
